@@ -1,0 +1,77 @@
+#define LED_VD 5
+#define LED_VM 6
+bool flag_VD, flag_VM;
+//----------------------------------------------------------------------------------
+ISR(TIMER1_OVF_vect) //interrupção do TC1 a cada 10kHz
+{
+	TCNT1 = 65336;
+	digitalWrite(LED_VM, flag_VM);
+	flag_VM = !flag_VM;
+}
+//----------------------------------------------------------------------------------
+ISR(TIMER2_OVF_vect) //interrupção do TC2 a cada 20kHz
+{
+	TCNT2 = 156;
+	digitalWrite(LED_VD, flag_VD);
+	flag_VD = !flag_VD;
+}
+//----------------------------------------------------------------------------------
+
+//a alteração deverá ser feita só aqui @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+void config_timer1(int freqosc ,int freqdesejada);
+    {
+        //TC1 com prescaler de 8, a 16 MHz gera uma interrupção a cada 32,768ms
+	    TCCR1B |= (1<<CS11);	
+	    //Inicia o contador do timer 1 com 65336 para que a interrupção aconteça a cada 100us = 10kHz.
+
+         TCNT1 = (65335 + 1) - (freqosc/(2*freqdesejada*prescaler))
+         TCNT1 = 65336;    
+    }
+
+void setup()
+{
+	noInterrupts();
+	DDRD |= (1<<PD6); //Define pino 6 como saída.
+	DDRD |= (1<<PD5); //Define pino 5 como saída.
+
+	PORTD &= ~(1<<PD6); //Apaga LED do pino 6.
+	PORTD &= ~(1<<PD5); //Apaga LED do pino 8.	
+    
+    config_timer1(16000000,5000);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //
+    //{
+    //    //TC1 com prescaler de 8, a 16 MHz gera uma interrupção a cada 32,768ms
+	//    TCCR1B |= (1<<CS11);	
+	//    //Inicia o contador do timer 1 com 65336 para que a interrupção aconteça a cada 100us = 10kHz.
+    //     TCNT1 = 65336;    
+    //}
+    //
+
+    //Configura Timer 1 para configuração normal.
+    TCCR1A = 0;
+    //Limpa o registrador de configuração. 
+    TCCR1B = 0;
+	
+	//habilita a interrupção do TC1.
+	TIMSK1 |= (1<<TOIE1);
+
+	//Configura Timer 2 para configuração normal.
+    TCCR2A = 0;
+    //Limpa o registrador de configuração. 
+    TCCR2B = 0;
+	//TC2 com prescaler de 8, a 16 MHz gera uma interrupção a cada 128us
+	TCCR2B |= (1<<CS21);	
+	//Inicia o contador do timer 2 com 156 para que a interrupção aconteça a cada 50us = 20kHz.
+    TCNT2 = 156;
+	//habilita a interrupção do TC2.
+	TIMSK2 |= (1<<TOIE2);
+	interrupts(); 
+}
+void loop()
+{		
+	/*Aqui vai o código principal.
+	 A cada estouro do TC1 o programa desvia para ISR(TIMER1_OVF_vect)	
+	 A cada estouro do TC2 o programa desvia para ISR(TIMER2_OVF_vect)*/
+}
+//----------------------------------------------------------------------------------

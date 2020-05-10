@@ -1,3 +1,9 @@
+/*
+Anderson Colossi
+Faculdade SATC 2020
+Projeto de Semáforo Simples, substituindo os tradicionais comandos pinMode e digitalWrite por DDR e PORT , melhorando com isso a performance e poupando consideravelmente memória flash
+*/
+
 #include <Arduino.h>
 
 #define green 10

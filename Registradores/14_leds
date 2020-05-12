@@ -1,3 +1,13 @@
+/*
+Sistemas Embarcados
+Aula02 (slide)
+1) Desenvolva um protótipo de contador indicativo
+com 14 LEDs ligando um LED por vez a cada 1
+segundo (LEDs ligam da direita para a esquerda).
+Configure e controle os pinos diretamente pelos
+registradores.
+*/
+
 #include <Arduino.h>
 
 void setup(){

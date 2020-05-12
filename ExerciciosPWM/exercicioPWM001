@@ -1,0 +1,38 @@
+void setup()
+{
+	noInterrupts();//stop interrupts
+	DDRD |= (1<<PD6); //Define pino 6(OC0A) como saída.
+  DDRD |= (1<<PD5); //Define pino 5(OC0B) como saída.  
+	PORTD &= ~(1<<PD6); //Apaga o pino 6 (OC0A).
+	PORTD &= ~(1<<PD5); //Apaga o pino 5 (OC0B).
+  
+	TCCR0A = 0;// reiniciliza o registrador TCCR0A	
+	// Liga o modo PWM rápido
+  TCCR0A |= (1 << WGM01) | (1 << WGM00);
+  // Apaga o pino OC0A na comparação do contador com o TOP (255) do TC.
+  TCCR0A |= (1 << COM0A1);
+  // Apaga o pino OC0B na comparação do contador com o TOP (255) do TC.
+  TCCR0A |= (1 << COM0B1);
+
+  //Poderia ter sido feito apenas o seguinte:
+  //TCCR0A = 0b10100011; //Fast PWM, TOP = 0xFF, OC0A e OC0B habilitados como não invertido nos pinos OC0A e OC0B
+
+  TCCR0B = 0;// reiniciliza o registrador TCCR0B
+	// Configura o prescaler em 64. Neste caso a frequência do PWM vai ser:
+	// f = 16MHz/(64*(1+255)) = 1041Hz = 960us
+	TCCR0B |= (1 << CS01) | (1 << CS00); 
+
+  //Poderia ter sido feito apenas o seguinte:
+  //TCCR0B = 0b00000011; //liga TC0, prescaler = 64
+
+  OCR0A = 127; //controle do ciclo ativo do PWM 0C0A //Configura o overflow do PWM (indiretamente a frequência)
+  OCR0B = 64; //controle do ciclo ativo do PWM OC0B
+  
+	interrupts();//allow interrupts
+}
+void loop()
+{		
+  
+}
+
+        

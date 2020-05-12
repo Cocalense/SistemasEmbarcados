@@ -1,7 +1,13 @@
 /*
 Anderson Colossi
 Faculdade SATC 2020
-Projeto de Semáforo Simples, substituindo os tradicionais comandos pinMode e digitalWrite por DDR e PORT , melhorando com isso a performance e poupando consideravelmente memória flash
+Aula02 (slides)
+
+1) Utilizando o VsCode, desenvolva um protótipo de semáforo eletrônico utilizando as
+funções do Arduino.
+
+2) **Refaça o exemplo anterior configurando e controlando os pinos diretamente pelos
+registradores. Compare o consumo de memória em ambos os exemplos.**
 */
 
 #include <Arduino.h>

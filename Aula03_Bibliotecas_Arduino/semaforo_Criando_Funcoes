@@ -1,0 +1,107 @@
+#include <!Arduino.h>
+
+#define verdeCarro 9
+#define vermelhoCarro 11
+#define amareloCarro 10
+#define verdePedestre 12
+#define vermelhoPedestre 13
+#define SAIDA OUTPUT
+#define ENTRADA INPUT
+
+//criando função modoPino e entradas de dados à espera de valores
+void modoPino(int pin, int modo){
+  if(modo==SAIDA){
+    if((pin>=0)&&(pin<=7)){
+        DDRC |= (0b00000001<<pin);
+      }
+      if((pin>=8)&&(pin<=13)){      
+        DDRB |= (0b00000001<<(pin-8));
+      }  
+  }
+  if(modo==ENTRADA){
+      if((pin>=0)&&(pin<=7)){
+        DDRC &= ~(0b00000001<<pin);
+      }
+      if((pin>=8)&&(pin<=13)){      
+        DDRB &= ~(0b00000001<<(pin-8));
+      }  
+  }
+}
+
+void escreveDigital(int pin, int estado){
+  if(estado==HIGH){
+    if((pin>=0)&&(pin<=7)){
+        PORTC |= (0b00000001<<pin);
+      }
+      if((pin>=4)&&(pin<=13)){      
+        PORTB |= (0b00000001<<(pin-8));
+      }  
+  }
+  if(estado==LOW){
+      if((pin>=0)&&(pin<=7)){
+        PORTC &= ~(0b00000001<<pin);
+      }
+      if((pin>=8)&&(pin<=13)){      
+        PORTB &= ~(0b00000001<<(pin-8));
+      }  
+  }  
+}
+
+void espera(int segundos){
+    int ms = segundos * 1000;
+	uint32_t start = micros();
+	while (ms > 0) {
+		yield();
+		while ( ms > 0 && (micros() - start) >= 1000) {
+			ms--;
+			start += 1000;
+		}
+	}
+}
+
+void setup()
+{
+  modoPino(vermelhoCarro, SAIDA);
+  modoPino(amareloCarro, SAIDA);
+  modoPino(verdeCarro, SAIDA);
+  modoPino(verdePedestre, SAIDA);
+  modoPino(vermelhoPedestre, SAIDA);
+  modoPino(2, ENTRADA);
+  escreveDigital(vermelhoCarro, LOW);
+  escreveDigital(amareloCarro, LOW);
+  escreveDigital(verdeCarro, HIGH);
+  escreveDigital(verdePedestre, LOW);
+  escreveDigital(vermelhoPedestre, HIGH);    
+}
+
+void loop()
+{
+  //8 porque não foi feito para o PORTD :)
+  if (digitalRead(4) == HIGH)
+  {  
+
+    escreveDigital(verdeCarro, LOW);
+    escreveDigital(amareloCarro, HIGH);
+    espera(5);
+    escreveDigital(vermelhoCarro, HIGH);
+    escreveDigital(amareloCarro, LOW);
+    espera(3);
+    escreveDigital(vermelhoPedestre, LOW);
+    escreveDigital(verdePedestre, HIGH);
+    espera(5);
+	
+    
+    for (int x=1; x<=3; x++ )
+    {
+      espera(2);
+      escreveDigital(verdePedestre, LOW);
+      espera(2);
+      escreveDigital(verdePedestre, HIGH);    
+    }
+    escreveDigital(verdePedestre, LOW);
+    escreveDigital(vermelhoPedestre, HIGH);
+    espera(3);
+    escreveDigital(vermelhoCarro, LOW);
+    escreveDigital(verdeCarro, HIGH);
+  }
+}

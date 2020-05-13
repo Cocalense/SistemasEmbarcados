@@ -1,4 +1,6 @@
 /*
+Utilizando o VsCode IDE, desenvolva um protótipo de semáforo para pedestres
+criando as suas funções modoPino(), leDigital(), espera() e escreveDigital().
 Projeto Semaforo Pedestre
 aluno: Anderson Colossi
 Faculdade SATC 2020

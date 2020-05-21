@@ -1,0 +1,29 @@
+/*
+Anderson Colossi
+Faculdade SATC 2020
+******************************************
+1. O sensor abaixo é conhecido como sensor PIR, um sensor infravermelho passivo que
+mede a luz infravermelha que irradia dos objetos em seu campo de visão. Ele é
+frequentemente usado em detectores de movimento. Desenvolva um programa que
+faça a leitura do sensor PIR e dispare o buzzer por 2 segundos caso o sensor PIR detecte
+movimento em seu campo de visão.
+*/
+
+#include <Arduino.h>
+#define PIR 13  //declara PIR como inteiro no pino 1
+#define BUZZER 12  //declara BUZZER como inteiro no pino 6
+
+void setup() 
+{
+	pinMode(PIR, INPUT_PULLUP);  //pull_upp=(resistores conectados a alimentação internamente)
+  	pinMode(BUZZER, OUTPUT);  //declara o BUZZER como modo saída
+}
+
+void loop() 
+{
+  if (digitalRead(PIR)){     //se detectar presença faz a leitura do sensor
+    tone(BUZZER, 1000, 2000);
+  }
+  else noTone(BUZZER);  
+  delay(10);
+}

@@ -1,0 +1,83 @@
+/*
+Anderson Colossi
+Faculdade SATC 2020
+**************************************
+Desenvolver um programa que leia o valor analógico da tensão de saída de três 
+potenciômetros e controle as cores de um LED RGB. Além disso, indique na serial os valores
+proporcionais de 0 a 100% de Vermelho, Verde e Azul.
+
+*/
+
+#include <Arduino.h>
+
+const int8_t potentiometerPins[] = { A0, A1, A2 };
+
+/* Valores lidos da matriz de pinos do pontetiômetro
+ depois de ser mapeado de 10 bits para 8 bits
+*/
+
+uint8_t potentiometerValues[] = { 0, 0, 0 };
+
+// declarando os tipos e os pinos dos leds
+const int8_t ledRPin = 9;
+const int8_t ledGPin = 11;
+const int8_t ledBPin = 10;
+
+// Valor para cada cor (0 - 255), iniciando tudo com zero, sem cor
+uint8_t blueValue = 0;
+uint8_t greenValue = 0;
+uint8_t redValue = 0;
+
+uint16_t startMillis;  //algumas variáveis ​​globais disponíveis em qualquer lugar do programa
+uint16_t currentMillis;
+const uint16_t period = 500;  //o valor é um número de milissegundos
+
+void setup() 
+{
+	// iniciar a porta serial serial
+	Serial.begin(9600);	  
+	  
+	// Define todos os pinos do LED para OUTPUT
+	pinMode(ledRPin, OUTPUT);
+	pinMode(ledGPin, OUTPUT);
+ 	pinMode(ledBPin, OUTPUT);
+}
+
+void loop() 
+{
+  	/*
+    Lê os valores dos potenciômetros
+    mapeia-os de 10 bits para 8 bits
+    e atribua-os ao respectivo índice na matriz potentiometerValues
+    */
+  	for (uint8_t i = 0; i < 3; i++) 
+  	{
+  		potentiometerValues[i] = map(analogRead(potentiometerPins[i]), 0, 1023, 0, 255);
+  	}
+  
+	/*
+    Atribui cada um dos valores do potenciômetro à sua cor, para facilitar a leitura
+    */
+	blueValue = potentiometerValues[0];
+	greenValue = potentiometerValues[1];
+	redValue = potentiometerValues[2];
+
+	//Envia o valor de 0 a 255 a cada pino de LED
+	analogWrite(ledRPin, redValue);
+	analogWrite(ledGPin, greenValue);
+	analogWrite(ledBPin, blueValue);
+	
+	currentMillis = millis();  //obter o "tempo" atual (na verdade, o número de milissegundos desde que o programa foi iniciado
+	if (currentMillis - startMillis >= period)  //testar se o período passou
+	{
+		/*
+        Imprime a porcentagem de cada cor mapeia o valor de 0 - 255 a 0 - 100
+         para valores percentuais
+        */	
+		Serial.print(String("Red: ") + map(redValue, 0, 255, 0, 100) + String(" "));
+		Serial.print(String("Green: ") + map(greenValue, 0, 255, 0, 100) + String(" "));
+		Serial.println(String("Blue: ") + map(blueValue, 0, 255, 0, 100) + String(" "));
+		startMillis = currentMillis;  //IMPORTANTE para salvar a hora de início do estado atual do LED.
+	} 
+	delay(10); //Para não travar o simulador. 
+}

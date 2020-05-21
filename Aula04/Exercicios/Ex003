@@ -1,0 +1,24 @@
+/*
+Anderson Colossi
+Faculdade SATC 2020
+*********************************************
+Desenvolver um programa que leia o valor analógico da tensão de saída do
+potenciômetro e controle proporcionalmente a velocidade de um motor de corrente
+contínua. Além disso, indique na serial o valor do retorno da função analogRead()
+*/
+
+#include <Arduino.h>
+#define motor 3
+#define V_analog A0
+#define int16_t analogic = 0
+
+void setup(){
+    Serial.begin(9600);
+}
+void loop(){
+    analogica = analogRead(AN);
+    analogWrite(motor, analogica >>2);
+    Serial.print("AN =");
+    Serial.println(analogica);
+    delay(100);
+}

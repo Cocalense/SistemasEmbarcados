@@ -1,0 +1,21 @@
+/*
+Anderson Colossi
+Faculdade SATC 2020
+***************************************
+Desenvolver um programa que faça a leitura do sensor de temperatura LM36 e indique
+o valor da temperatura no monitor serial. 
+*/
+
+#include <Arduino.h>
+#define LM A0
+#define float temperatura 0
+
+void setup(){
+    Serial.begin(9600);
+}
+void loop(){
+    temperatura = ((float) analogRead(LM)* 0.48887) -50;
+    Serial.print("LM =");
+    Serial.println((float)temperatura);
+    delay(100);
+}

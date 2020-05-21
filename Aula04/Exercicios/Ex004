@@ -81,3 +81,52 @@ void loop()
 	} 
 	delay(10); //Para não travar o simulador. 
 }
+
+/*
+****************************************
+OUTRA FORMA DE ESCREVER O CODIGO, COM %
+****************************************
+
+#define ANR A2
+#define ANG A1
+#define ANB A0
+
+#define SAIDA_R 9
+#define SAIDA_G 11
+#define SAIDA_B 10
+
+uint16_t vermelho = 0;
+uint16_t verde = 0;
+uint16_t azul = 0;
+
+void setup() {
+	Serial.begin(9600); // Connfigura a serial com baudrate de 9600
+}
+
+int ad_to_porcent(uint16_t ad) { // Converte AD em porcetagem
+   return ((float)ad / 1023 * 100);
+}
+
+void loop() {
+	// leitura das entradas com 10 bits
+   vermelho = analogRead(ANR);
+   verde = analogRead(ANG);
+   azul = analogRead(ANB);
+   
+   // Converte em 8 bits e atualiza a saída
+	analogWrite(SAIDA_R, vermelho >> 2);
+   analogWrite(SAIDA_G, verde >> 2);
+   analogWrite(SAIDA_B, azul >> 2);
+
+   // Imprime na serial
+   Serial.print("[R:"); 
+   Serial.print((int)ad_to_porcent(vermelho)); 
+   Serial.print(",G:"); 
+   Serial.print((int)ad_to_porcent(verde)); 
+   Serial.print(",B:"); 
+   Serial.print((int)ad_to_porcent(azul));
+	Serial.println("]");
+ 
+   delay(10); // Para não travar o TinkerCad
+}
+*/

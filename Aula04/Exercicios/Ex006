@@ -1,4 +1,7 @@
 /*
+Anderson Colossi
+Faculdade SATC 2020
+**************************************************************************************
 Desenvolver um programa que leia o valor analógico da tensão de saída do
 potenciômetro e indique a tensão no display de 7 segmentos. O programa deve mostrar
 no display apenas o valor inteiro da tensão. (Ex: Se valor lido no multímetro for 3,95V

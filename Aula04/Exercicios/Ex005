@@ -1,0 +1,36 @@
+/*
+Anderson Colossi
+Faculdade SATC 2020
+**********************************************************
+
+Desenvolver um programa que leia o valor analógico da tensão de saída do potenciômetro e 
+acenda os LEDS proporcionalmente ao valor do potenciômetro. Este protótipo simula um barghaph.
+
+*/
+
+#include <Arduino.h>
+#define POT A0
+
+void setup(){
+    //Configura os pinos de 0 a 10 como saída.
+    for (int i = 0; i < 10; i++){
+        pinMode (i, OUTPUT);
+    }
+}
+
+void loop(){
+    //Realiza a leitura analógica do pino do potênciometro e converte de 0 a 10.
+    int pin = (analogRead(POT) * 10) / 1023;
+    //Controla os pinos dos leds
+    for (int i = 0; i < pin; i++)
+    {
+        digitalWrite(i, HIGH);
+    }
+    for (int i = 0; i < 10; i++)
+    {
+        digitalWrite(i, LOW);
+    }
+    delay(10); tempo par anão travar o simulador
+    
+    
+}

@@ -1,0 +1,361 @@
+#include "Arduino.h"
+
+#define bit_is_set(sfr, bit)   (_SFR_BYTE(sfr) & _BV(bit))
+
+#define bit_is_clear(sfr, bit)  (!(_SFR_BYTE(sfr) & _BV(bit)))
+
+#define f_16Mhz 0
+#define f_65Khz 1
+#define f_7Khz  8
+#define f_868hz 64
+#define f_190hz 256
+#define f_46hz 1024
+
+#define PRESCALER_DIV_2   0b001
+#define PRESCALER_DIV_4   0b010
+#define PRESCALER_DIV_8   0b011
+#define PRESCALER_DIV_16  0b100
+#define PRESCALER_DIV_32  0b101
+#define PRESCALER_DIV_64  0b110
+#define PRESCALER_DIV_128 0b111
+
+#define AUTO_TRIGGER_ON   1
+#define AUTO_TRIGGER_OFF  0
+
+#ifdef AUTO_TRIGGER_ON
+  bool flag_trigger;
+#endif 
+
+#define TRIGGER_SOURCE_FR   0b000 
+#define TRIGGER_SOURCE_AC   0b001
+#define TRIGGER_SOURCE_EI0  0b010 
+#define TRIGGER_SOURCE_TC0A 0b011
+#define TRIGGER_SOURCE_TC0  0b100 
+#define TRIGGER_SOURCE_TC1B 0b101
+#define TRIGGER_SOURCE_TC1  0b110
+#define TRIGGER_SOURCE_TC1E 0b111
+
+#define ADC_ON  1 
+#define ADC_OFF 0
+
+#define ADC_VREF_OFF 0b00 
+#define ADC_VREF_VCC 0b01
+#define ADC_VREF_11V 0b11
+
+#define ADC_ALIGN_L 1 
+#define ADC_ALIGN_R 0 
+
+#define ADC_INTERRUPT_ON  1 
+#define ADC_INTERRUPT_OFF   0 
+
+#ifdef ADC_INTERRUPT_ON
+  int global_adc_value;
+  bool flag_adc;
+  ISR(ADC_vect) 
+  {
+    flag_adc = 1;
+  if(bit_is_clear(ADMUX, ADLAR))     
+    global_adc_value = ADCL|(ADCH<<8); 
+  else
+    global_adc_value = (ADCH);      
+  }
+#endif
+
+void adc_config(  uint8_t preescaler, 
+          bool auto_trigger, 
+          bool adc_enable, 
+          uint8_t adc_ref,
+          bool left_adjust,
+          bool adc_interrupt,
+          uint8_t tri_source)
+{
+  ADCSRA |= (preescaler & 0b00000111);
+  
+  if (auto_trigger)
+    ADCSRA |= (1<<ADATE);
+  else 
+    ADCSRA &= ~(1<<ADATE);
+  
+  if(bit_is_set(ADCSRA,ADATE))
+    ADCSRB |= (tri_source & 0b00000111);
+
+  if(adc_enable)
+    ADCSRA |= ADEN;
+  else
+      ADCSRA &= ~ADEN;
+    
+    ADMUX |= ((adc_ref<<6) & 0b11000000);
+   
+    if(left_adjust)
+      ADMUX |= (1<<ADLAR);
+    else
+      ADMUX &= ~(1<<ADLAR);
+
+    if(adc_interrupt)
+      ADCSRA |= (1<<ADIE); 
+    else
+      ADCSRA &= ~(1<<ADIE);
+}
+
+
+int leituraAnalogica(uint8_t pin)
+{
+  int bToChannel = pin & 0b00000111;
+  int adc_value;
+  ADMUX |= bToChannel;
+  
+  ADCSRA |= (1<<ADSC); 
+         
+  if(bit_is_clear(ADCSRA,ADIE))
+  {
+    while(bit_is_clear(ADCSRA, ADIF));
+  
+    if(bit_is_clear(ADMUX, ADLAR))
+      adc_value = ADCL|(ADCH<<8);   
+    else
+      adc_value = (ADCH);
+    return(adc_value);
+  }
+  else
+  {
+    return(0); 
+  } 
+}
+int leituraAnalogicaFR()
+{  
+  int adc_value; 
+  ADCSRA |= (1<<ADSC);
+  if(bit_is_clear(ADMUX, ADLAR))
+  adc_value = ADCL|(ADCH<<8);
+  else
+  adc_value = (ADCH);
+  return(adc_value);    
+}
+
+void escritaAnalogica(int pino, int frequencia, int dutycycle){
+    if ((pino == 5) || (pino == 6)){
+      DDRD |= (1<<PD6);
+      DDRD |= (1<<PD5);
+      TCCR0A = 0;
+      TCCR0B = 0;
+      TCCR0A |= (1<<COM0B1) | (1<<COM0A1) | (1<<WGM01) | (1<<WGM00);
+      
+      switch (frequencia) {
+        case 0:
+          TCCR0B |= (1<<CS00);
+        break;
+        case 8:
+          TCCR0B |= (1<<CS01);
+        break;
+        case 64:
+          TCCR0B |= (1<<CS01)|(1<<CS00);
+        break;
+        case 256:
+          TCCR0B |= (1<<CS02);
+        break;
+        case 1024:
+          TCCR0B |= (1<<CS02)|(1<<CS00);
+        break;
+    }
+      
+      switch (pino) {
+        case 5:
+          OCR0B = dutycycle;
+        break;
+        case 6:
+          OCR0A = dutycycle;
+        break;
+    }
+    }
+    if((pino == 9)||(pino == 10)){
+      DDRB |= (1<<PB1);
+      DDRB |= (1<<PB2);
+      TCCR1A = 0;
+      TCCR1B = 0;
+      TCCR1A |= (1<<WGM10) | (1<<COM1A1) | (1<<COM1B1);
+      switch (frequencia) {
+        case 0:
+          TCCR1B |= (1<<CS10) | (1<<WGM12);
+        break;
+        case 8:
+          TCCR1B |= (1<<CS11)| (1<<WGM12);
+        break;
+        case 64:
+          TCCR1B |= (1<<CS11)|(1<<CS10)| (1<<WGM12);
+        break;
+        case 256:
+          TCCR1B |= (1<<CS12)| (1<<WGM12);
+        break;
+        case 1024:
+          TCCR1B |= (1<<CS12)|(1<<CS10)| (1<<WGM12);
+        break;
+      } 
+      switch (pino) {
+        case 9:
+          OCR1A = dutycycle;
+        break;
+        case 10:
+          OCR1B = dutycycle;
+        break;
+    }
+  }
+    if((pino == 11)||(pino == 3)){
+      DDRB |= (1<<PB3);
+      DDRD |= (1<<PD3);
+      TCCR2A = 0;
+      TCCR2B = 0;
+      TCCR2A |= (1<<COM2A1) | (1<<COM2B1) | (1<<WGM21) | (1<<WGM20);
+      switch (frequencia) {
+        case 0:
+          TCCR2B |= (1<<CS20);
+        break;
+        case 8:
+          TCCR2B |= (1<<CS21);
+        break;
+        case 64:
+          TCCR2B |= (1<<CS22);
+        break;
+        case 256:
+          TCCR2B |= (1<<CS22) | (1<<CS21);
+        break;
+        case 1024:
+          TCCR2B |= (1<<CS22) | (1<<CS21) | (1<<CS20);
+        break;
+      }
+      switch (pino) {
+        case 11:
+          OCR2A = dutycycle;
+        break;
+        case 3:
+          OCR2B = dutycycle;
+        break;
+    }
+    }
+}
+
+
+void setup()
+{
+cli();
+  DDRD |= (1<<PD4);
+  PORTD &= ~(0b00010000);
+  PORTD &= ~(0b01000000);
+
+  adc_config( PRESCALER_DIV_128,
+          AUTO_TRIGGER_ON,
+          ADC_ON,
+          ADC_VREF_VCC,
+          ADC_ALIGN_R,
+          ADC_INTERRUPT_ON, 
+          TRIGGER_SOURCE_FR);
+  leituraAnalogica(0);
+  sei();
+}
+
+boolean on = false;
+boolean R = true;
+boolean G = false;
+boolean B = false;
+boolean RGB = false;
+
+int Tim1 = 0;
+int Tim2 = 0;
+int Tim3 = 0;
+int Rv = 0;
+int Gv = 0;
+int Bv = 0;
+int vl_antigo = 0;
+
+boolean mudou = false;
+
+void loop()
+{
+  double valor_ad; 
+  int valor_255;
+  valor_ad = leituraAnalogicaFR();
+  valor_255 = int(((valor_ad / 1023)*255));
+  double valor_porcento = (100*valor_255)/255;
+  if(valor_255 == 255){
+    DDRD |= (0b01000000);
+    OCR0A = 255;
+    PORTD &= ~(0b00010000);
+  }else{
+    if(valor_255 == 0){
+      PORTD |= (0b00010000);
+      DDRD &= ~(0b01000000);
+    }else{
+      DDRD &= ~(0b01000000);
+      PORTD &= ~(0b00010000);
+    }
+  }
+  if(R){
+    Tim1 = 0;
+    Tim2 = 0;
+    Tim3 = valor_255; 
+  }
+  
+  if(G){
+    Tim1 = valor_255;
+    Tim2 = 0;
+    Tim3 = 0;
+  }
+  
+  if(B){
+   Tim1 = 0;
+   Tim2 = valor_255;
+   Tim3 = 0; 
+  }
+
+  if(RGB){
+   Tim1 = Gv;
+   Tim2 = Bv;
+   Tim3 = Rv; 
+  }
+  
+if(vl_antigo != valor_255){
+  mudou = true;
+}
+
+if(mudou){
+escritaAnalogica(5, f_190hz, Tim1);
+escritaAnalogica(10, f_190hz, Tim2);
+escritaAnalogica(3, f_190hz, Tim3);
+mudou = false;
+}
+
+  
+  if(PIND & 0b00000100){
+    if(on == false){
+      if(R){
+        Rv = valor_255;
+        R = false; 
+        G = true;
+        mudou = true;
+      }else{
+        if(G){
+         Gv = valor_255;
+         G = false;
+         B = true; 
+         mudou = true;
+        }else{
+          if(B){
+            Bv = valor_255;
+            B = false;
+            RGB = true;
+            mudou = true;
+          }else{
+            if(RGB){
+              RGB = false;
+              R = true;
+              mudou = true;
+            }
+          }
+        }
+      }
+      on = true;  
+    }
+  }else{
+    on = false;
+  }
+  vl_antigo = valor_255;
+}
